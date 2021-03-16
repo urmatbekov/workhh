@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+{% block head_title %}
+    Home
+{% endblock head_title %}
+
+{% block content %}
+    <h1>Images</h1>
+    <form id="image-form" method="post" class="mb-3" enctype="multipart/form-data" action=".">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <p id="error_1_id_image" class="invalid-feedback d-block"><strong id="error"></strong></p>
+        <input class='btn btn-primary' type="submit" value="Save"/>
+    </form>
+    <hr>
+    <div id="image-list" class="row">
+        {% for image in images %}
+            <div class="col-md-4 col-sm-6 mb-3">
+                <div class="card h-100">
+                    <img class="card-img-top" src="{{ image.image.url }}" alt="Card image cap">
+                    <div class="card-body d-flex align-items-end justify-content-between">
+                        <a href="{% url "update" image.id %}" class="btn btn-primary">update</a>
+                        <a href="{% url "delete" image.id %}" class="btn btn-danger">delete</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock content %}
+<script>
+    {% block jqery %}
+        const imageForm = document.getElementById("image-form")
+        const imageList = document.getElementById("image-list")
+        const error = document.getElementById("error")
+
+        imageForm.onsubmit = (e) => {
+            e.preventDefault()
+            const formData = new FormData(e.currentTarget)
+            fetch("{{ request.path }}", {
+                method: "POST",
+                body: formData,
+                headers: {"X-Requested-With": "XMLHttpRequest"},
+            }).then((res) => {
+                res.json().then((data) => {
+                    if (res.status === 400) {
+                        error.innerText = data.image[0]
+                        return
+                    }
+                    error.innerText = ""
+                    imageForm.reset();
+                    imageList.innerHTML += '<div class="col-md-4 col-sm-6 mb-3">' +
+                        '<div class="card h-100">' +
+                        '<img class="card-img-top" src="' + data.image + '" alt="Card image cap">' +
+                        '<div class="card-body d-flex align-items-end justify-content-between">' +
+                        '<a href="/image/update/' + data.id + '" class="btn btn-primary">update</a>' +
+                        '<a href="/image/delete/' + data.id + '" class="btn btn-danger">delete</a>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>'
+                })
+            })
+        }
+    {% endblock %}
+</script>
