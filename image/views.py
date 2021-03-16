@@ -71,6 +71,7 @@ class ImageList(LoginRequiredMixin, ListView):
                 form.save()
                 if request.is_ajax():
                     instance = form.instance
+                    instance.send_to_mail()
                     return JsonResponse({"image": instance.image.url, "id": instance.id})
             return JsonResponse(form.errors, status=400)
         else:
